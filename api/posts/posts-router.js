@@ -1,4 +1,5 @@
 // implement your posts router here
+const e = require('express');
 const express = require('express');
 const Posts = require('./posts-model');
 const router = express.Router();
@@ -35,7 +36,20 @@ router.get('/:id/comments', (req, res) => {
 });
 
 router.post('/', (req, res) => {
-    res.status(200).json({ message: 'creates new post' })
+   const newPost = req.body
+   if(!newPost.title || !newPost.contents) {
+       res.status(400).json({ message: "Please provide title and contents for the post" })
+   } else { 
+       Posts.insert(newPost)
+        .then(postId => {
+            newPost.id = postId.id;
+            res.status(201).json(newPost)
+        })
+        .catch(err => {
+            console.log(err)
+            res.status(500).json({ message: "There was an error while saving the post to the database" })
+        })
+   }
 });
 
 router.put('/:id', (req, res) => {
