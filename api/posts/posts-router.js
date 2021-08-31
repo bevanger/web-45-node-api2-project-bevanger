@@ -31,8 +31,19 @@ router.get('/:id', (req, res) => {
     })
 });
 
-router.get('/:id/comments', (req, res) => {
-    res.status(200).json({ message: 'returns array of all the comments of specified post id' })
+router.get('/:id/comments', async (req, res) => {
+    const {id} = req.params;
+    const post = await Posts.findById(id);
+
+    if(post) {
+        Posts.findPostComments(id)
+            .then(comments => {
+                res.status(200).json(comments)
+            })
+            .catch(err => res.status(500).json({ message: "The comments information could not be retrieved" })
+            )} else {
+                res.status(404).json({ message: "The post with teh specified ID does not exist" })
+            }
 });
 
 router.post('/', (req, res) => {
