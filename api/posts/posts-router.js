@@ -53,11 +53,43 @@ router.post('/', (req, res) => {
 });
 
 router.put('/:id', (req, res) => {
-    res.status(200).json({ message: 'updates post with specified id' })
+    const { id } = req.params;
+    const changes = req.body;
+
+    if(!id || !req.body.title || !req.body.contents) { // Better way? !changes doesn't catch
+        res.status(400).json({ message: 'Please provide title and contents for the post'})
+    } else {
+        Posts.update(id, changes)
+            .then(success => {
+                if(success) {
+                    Posts.findById(id)
+                        .then(updatedPost => res.status(200).json(updatedPost))
+                        .catch(err => console.log(err))
+                } else {
+                    res.status(404).json({ message: 'The post with the specified ID does not exist'})
+                }
+            })
+            .catch(err => {
+                console.log(err)
+                res.status(500).json({ message: 'The post information could not be modified'})
+            })
+    }
 });
 
-router.delete('/:id', (req, res) => {
-    res.status(200).json({ message: 'deletes post with specified id' })
+router.delete('/:id', async (req, res) => {
+    const post = await Posts.findById(req.params.id)
+    Posts.remove(req.params.id)
+        .then(success => {
+            if(success) {
+                res.status(200).json(post)
+            } else {
+                res.status(404).json({ message: "The post with the specified ID does not exist" })
+            }
+        })
+        .catch(err => {
+            console.log(err)
+            res.status(500).json({ message: "The post could not be removed" })
+        })
 });
 
 module.exports = router;
